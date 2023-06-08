@@ -27,6 +27,7 @@ public class DataAccessRepository {
     private final JdbcTemplate jdbcTemplate;
     private final CustomizableParameters customizableParameters;
 
+
     @Autowired
     public DataAccessRepository(JdbcTemplate jdbcTemplate, CustomizableParameters customizableParameters) {
         this.jdbcTemplate = jdbcTemplate;
@@ -34,35 +35,34 @@ public class DataAccessRepository {
     }
 
     public void selectionOfRecords() {
-        //Текущее время
-        LocalDateTime currentTime = LocalDateTime.now();
-
-        //Текущее время минус какое-то количество часов.
-        LocalDateTime pastTime = currentTime.minusHours(customizableParameters.getHours()); // Может ли тут быть исключение?
+        if (ListOfFiles.listOfFiles() == null) {
+            LocalDateTime currentTime = LocalDateTime.now();
+            LocalDateTime pastTime = currentTime.minusHours(customizableParameters.getHours()); // Может ли тут быть исключение?
 
 
-        if (currentTime == pastTime) {
-            logger.error("Произошла ошибка при вычислении интервала");
-            return;
+            if (currentTime == pastTime) {
+                logger.error("Произошла ошибка при вычислении интервала");
+                return;
+            }
+            String numberOfMatchingLines = String.format("SELECT %s FROM %s WHERE %s >= ? AND %s <= ?",
+                    customizableParameters.getPrimalKeyColumnDelSqlParam(),
+                    customizableParameters.getTableNameSqlParam(),
+                    customizableParameters.getTimeStampOfRecordCreation(),
+                    customizableParameters.getTimeStampOfRecordCreation()
+            );
+
+            rollCallBack(numberOfMatchingLines, currentTime, pastTime);
+
         }
-
-
-        String numberOfMatchingLines = String.format("SELECT %s FROM %s WHERE %s >= ? AND %s <= ?",
-                customizableParameters.getPrimalKeyColumnDelSqlParam(),
-                customizableParameters.getTableNameSqlParam(),
-                customizableParameters.getTimeStampOfRecordCreation(),
-                customizableParameters.getTimeStampOfRecordCreation()
-        );
-
-        rollCallBack(numberOfMatchingLines, currentTime, pastTime);
-
+        else{
+            logger.info("Операция выборки пропущена, так как в папке есть файлы");
+        }
     }
     private void writingFile(List<String> idList) throws IOException {
         int count = 0;
         BufferedWriter file = null;
         File temporaryDir = FolderCreation.folderCreation();
         if (temporaryDir != null) {
-            logger.info("Папка {} успешно создана", "temporaryDir");
             if (idList != null) {
                 for (String id : idList) {
                     if (count == 0) {
@@ -126,13 +126,13 @@ public class DataAccessRepository {
         reader.close();
         return idList;
     }
+
     //Удаление
     public void deleteData() {
             File[] files = ListOfFiles.listOfFiles();
             if (files.length > 0) {
-                for (File file : files) { //todo: Вопрос по поводу создания повторной папки
                     try {
-                        String tmp = String.join(",", fileReader(file));
+                        String tmp = String.join(",", fileReader(files[0]));
                         String limitedDeletionRequest = String.format("DELETE FROM %s WHERE %s IN (%s)",
                                 customizableParameters.getTableNameSqlParam(),
                                 customizableParameters.getPrimalKeyColumnDelSqlParam(),
@@ -140,13 +140,12 @@ public class DataAccessRepository {
                         logger.info("sql: {}", limitedDeletionRequest);
                         jdbcTemplate.update(limitedDeletionRequest);
 
-                        if (!FileDeletion.fileDeletion(file)) {
+                        if (!FileDeletion.fileDeletion(files[0])) {
                             logger.error("Не удалось удалить файл");
                         }
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
-                }
             }
             else{
                 logger.error("В папке нет файлов");

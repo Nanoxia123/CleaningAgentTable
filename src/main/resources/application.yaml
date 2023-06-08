@@ -14,8 +14,6 @@ spring:
 #записи старше x часов.
 hours: 5
 
-#Аргумент условия для выборки элементов в SQL запросе Delete
-conditionForSampling: id
 
 #Название таблицы
 tableNameSqlParam: external_app_stat
@@ -23,25 +21,14 @@ tableNameSqlParam: external_app_stat
 #Наименование поля с первичным ключом
 primalKeyColumnDelSqlParam: id
 
-#Арифметический знак
-thirdArithmeticSignDelSqlParam: =
-
-
 
 #Наименование поля в таблице в котором, временная метка создания записи
 timeStampOfRecordCreation: time
-
-#Количество удаляемых записей за одну итерацию
 limitDelSqlParam: 3
 
 #Период выборки строк из таблицы, подлежащих удалению
-deletionPeriodArgument: "10 * * * * *"
-
-samplingPeriodArgument: "0 * * * * *"
-
-#Задержка удаления
-delayedRemoval: 1
-
+deletionPeriodArgument: "10 * * * * *" #3 раза в час
+samplingPeriodArgument: "0 * * * * *" #10 раз в час
 
 logging:
   config: classpath:log4j.yaml

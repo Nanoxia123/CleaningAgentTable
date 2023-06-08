@@ -3,7 +3,7 @@ package ru.gnivc.springboot.tableCleanupAgent;
 public class CustomizableParameters {
 
 
-    private int hours;
+    private final int hours;
 
     //Период выборки строк из таблицы, подлежащих удалению
     private final int limitDelSqlParam;

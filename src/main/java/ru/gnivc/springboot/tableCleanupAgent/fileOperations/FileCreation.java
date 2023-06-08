@@ -6,10 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-
-//Класс создания временного файла
 public class FileCreation {
-
     public static BufferedWriter createFile(File temporaryDir) throws IOException {
         File temporaryFile = File.createTempFile("text", ".txt", temporaryDir);
         return new BufferedWriter(new FileWriter(temporaryFile, StandardCharsets.UTF_8, true));
