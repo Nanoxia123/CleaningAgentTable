@@ -1,0 +1,2 @@
+# CleaningAgentTable
+Агент очистки таблицы
